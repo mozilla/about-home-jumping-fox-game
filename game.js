@@ -7,6 +7,13 @@
     var FOX = {
         'width' : 572,
         'height' : 120,
+        'player' : null,
+        'score' : 0,
+        'spawn' : {
+            'min' : 400,
+            'max' : 2000,
+            'next' : null
+        },
         'sprites' : {
             'fox' : {
                 'size' : 50,
@@ -18,6 +25,10 @@
             },
             'sky' : {
                 'src' : 'sky.jpg'
+            },
+            'ball' : {
+                'size' : 16,
+                'src' : 'ie.png'
             }
         }
     }
@@ -87,8 +98,7 @@
      */
     Crafty.c("Inside", {
         init: function() {
-            this.requires("controls");
-            this.bind("enterframe", function(speed,jump) {
+            this.bind("enterframe", function() {
                 if (this.x < 0) {
                     this.x = 0;
                 }
@@ -99,6 +109,64 @@
                 return this;
             });
         }
+    });
+
+    Crafty.c("Moving", {
+        init: function() {
+            this.requires("2D, DOM");
+
+            this.attr({
+                x : Crafty.viewport.width,
+                y : Crafty.viewport.height - FOX.sprites.floor.size - FOX.sprites.ball.size,
+                speed : 5
+            });
+
+            this.bind("enterframe", function() {
+                this._moveLeft();
+            });
+        },
+
+        moving: function(speed) {
+            this.speed = speed;
+        },
+
+        _moveLeft: function() {
+            this.x -= this.speed;
+
+            if (this._isOutside()) {
+                this.destroy();
+            }
+        },
+
+        _isOutside: function() {
+            return (this.x <= - this.width);
+        }
+    });
+
+    Crafty.c("Ennemy", {
+        init: function() {
+            this.requires("Collision");
+
+            this.collision()
+                .onHit("fox", function() {
+                    FOX.player.hurt(1);
+                    this.destroy();
+                })
+                ;
+        },
+    });
+
+    Crafty.c("Health", {
+        init: function() {
+            this.health = 100;
+        },
+
+        hurt: function(aouch) {
+            this.health -= aouch;
+            if (this.health <= 0) {
+                gameOver();
+            }
+        },
     });
 
     // -----------------------------------------------------------------
@@ -114,20 +182,52 @@
         Crafty.sprite(FOX.sprites.fox.size, FOX.sprites.fox.src, {
             fox: [0,0]
         });
+        Crafty.sprite(FOX.sprites.ball.size, FOX.sprites.ball.src, {
+            ball: [0,0]
+        });
 
         // Start the main scene when loaded
-        Crafty.scene("main");
+        Crafty.scene("start");
     });
+
+    // -----------------------------------------------------------------
+    // Functions
+    // -----------------------------------------------------------------
+
+    function gameOver() {
+        clearInterval(FOX.spawn.next);
+        Crafty("2D").destroy();
+        Crafty.scene("start");
+    }
 
     // -----------------------------------------------------------------
     // Scenes
     // -----------------------------------------------------------------
 
+    Crafty.scene("start", function() {
+        Crafty.background("url("+FOX.sprites.sky.src+")");
+
+        var link = Crafty.e("2D, DOM, Text").text('<a href="#" id="play">Play</a>');
+
+        Crafty.addEvent(
+            this,
+            link._element,
+            "click",
+            function() {
+                Crafty.scene("main");
+            }
+        );
+    });
+
     Crafty.scene("main", function() {
         Crafty.background("url("+FOX.sprites.sky.src+")");
 
-        var player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside")
-            .attr({x: 0, y: Crafty.viewport.height - FOX.sprites.fox.size - FOX.sprites.floor.size})
+        FOX.player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health")
+            .attr({
+                x: 0,
+                y: Crafty.viewport.height - FOX.sprites.fox.size - FOX.sprites.floor.size,
+                health : 5
+            })
             .animate("walk", 1, 0, 4)
             .twoway(0, 7)
             .gravity("floor")
@@ -141,8 +241,18 @@
                 h: FOX.sprites.floor.size
             })
         ;
-    });
 
-    console.log(FOX);
+        function spawn() {
+            clearInterval(FOX.spawn.next);
+            FOX.spawn.next = setInterval(
+                function() {
+                    Crafty.e("Moving, Ennemy, ball");
+                    spawn();
+                },
+                Math.floor(Math.random() * (FOX.spawn.max - FOX.spawn.min + 1)) + FOX.spawn.min
+            );
+        }
+        spawn();
+    });
 
 })();
