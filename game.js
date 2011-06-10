@@ -111,6 +111,9 @@
         }
     });
 
+    /**
+     * Moving component for entities moving from right to left.
+     */
     Crafty.c("Moving", {
         init: function() {
             this.requires("2D, DOM");
