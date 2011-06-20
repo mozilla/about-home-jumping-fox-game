@@ -8,6 +8,7 @@
         'width' : 572,
         'height' : 120,
         'player' : null,
+        'life' : 1,
         'score' : 0,
         'spawn' : {
             'min' : 400,
@@ -199,7 +200,6 @@
 
     function gameOver() {
         clearInterval(FOX.spawn.next);
-        Crafty("2D").destroy();
         Crafty.scene("start");
     }
 
@@ -212,13 +212,16 @@
 
         var link = Crafty.e("2D, DOM, Text").text('<a href="#" id="play">Play</a>');
 
+        var startGame = function(e) {
+            e.preventDefault();
+            Crafty.scene("main");
+        }
+
         Crafty.addEvent(
             this,
             link._element,
             "click",
-            function() {
-                Crafty.scene("main");
-            }
+            startGame.bind(this)
         );
     });
 
@@ -229,7 +232,7 @@
             .attr({
                 x: 0,
                 y: Crafty.viewport.height - FOX.sprites.fox.size - FOX.sprites.floor.size,
-                health : 5
+                health : FOX.life
             })
             .animate("walk", 1, 0, 4)
             .twoway(0, 7)
