@@ -265,7 +265,7 @@
         clearInterval(FOX.spawn.star.next);
         clearInterval(FOX.spawn.ennemy.next);
         clearInterval(FOX.spawn.superEnnemy.next);
-        Crafty.scene("start");
+        Crafty.scene("gameover");
     }
 
     // -----------------------------------------------------------------
@@ -273,9 +273,21 @@
     // -----------------------------------------------------------------
 
     Crafty.scene("start", function() {
-        Crafty("2D").destroy();
         Crafty.background("url("+FOX.sprites.sky.src+")");
         Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play</a>');
+    });
+
+    Crafty.scene("gameover", function() {
+        Crafty.background("url("+FOX.sprites.sky.src+")");
+        Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play again?</a>');
+        Crafty.e("2D, DOM, Text")
+            .css("color", "red")
+            .text('<p id="life">Life: ' + FOX.player.health + '</p>')
+            ;
+        Crafty.e("2D, DOM, Text")
+            .text('<p id="score">' + FOX.player.score + '</p>')
+            ;
+
     });
 
     Crafty.scene("main", function() {
@@ -292,19 +304,21 @@
             .gravity("floor")
         ;
 
-        lifeTxt = Crafty.e("2D, DOM, Text")
-            .text('<p id="life">Life: ' + FOX.life + '</p>')
+        // Life text
+        Crafty.e("2D, DOM, Text")
             .css("color", "red")
             .bind("enterframe", function() {
                 this.text('<p id="life">Life: ' + FOX.player.health + '</p>');
             })
             ;
-        scoreTxt = Crafty.e("2D, DOM, Text")
+        // Score text
+        Crafty.e("2D, DOM, Text")
             .bind("enterframe", function() {
                 this.text('<p id="score">' + FOX.player.score + '</p>');
             })
             ;
 
+        // Floor (mainly for gravity)
         Crafty.e("2D, floor")
             .attr({
                 x: 0,
