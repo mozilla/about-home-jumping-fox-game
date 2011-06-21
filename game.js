@@ -9,53 +9,69 @@
         'height' : 120,
         'player' : null,
         'life' : 5,
-        'score' : 10,
-        'spawn' : {
+        'score' : 0,
+        'entities' : {
             'star' : {
-                'min' : 600,
-                'max' : 2000,
-                'y' : 20,
-                'speed' : 5,
-                'next' : null
+                'attr' : {
+                    'y' : 20,
+                    'speed' : 5
+                },
+                'spawn' : {
+                    'min' : 600,
+                    'max' : 2000,
+                    'next' : null
+                },
+                'sprite' : {
+                    'size' : 16,
+                    'src' : 'star.png'
+                }
             },
-            'ennemy' : {
-                'min' : 400,
-                'max' : 2000,
-                'y' : 84,
-                'speed' : 5,
-                'next' : null
+            'enemy' : {
+                'attr' : {
+                    'y' : 84,
+                    'speed' : 5,
+                },
+                'spawn' : {
+                    'min' : 400,
+                    'max' : 2000,
+                    'next' : null
+                },
+                'sprite' : {
+                    'size' : 16,
+                    'src' : 'ie.png'
+                }
             },
-            'superEnnemy' : {
-                'min' : 3000,
-                'max' : 10000,
-                'y' : 84,
-                'speed' : 8,
-                'next' : null
-            }
-        },
-        'sprites' : {
-            'fox' : {
-                'size' : 50,
-                'src' : 'foxsheet.png'
+            'superEnemy' : {
+                'attr' : {
+                    'y' : 84,
+                    'speed' : 8,
+                },
+                'spawn' : {
+                    'min' : 3000,
+                    'max' : 10000,
+                    'next' : null
+                },
+                'sprite' : {
+                    'size' : 16,
+                    'src' : 'chrome.png'
+                }
+            },
+            'player' : {
+                'sprite' : {
+                    'size' : 50,
+                    'src' : 'foxsheet.png'
+                }
             },
             'floor' : {
-                'size' : 20,
-                'src' : 'floor.png'
+                'sprite' : {
+                    'size' : 20,
+                    'src' : 'floor.png'
+                }
             },
             'sky' : {
-                'src' : 'sky.jpg'
-            },
-            'ennemy' : {
-                'size' : 16,
-                'src' : 'ie.png'
-            },
-            'superEnnemy' : {
-                'size' : 16,
-                'src' : 'ball.png'
-            },
-            'star' : {
-                'size' : 16,
-                'src' : 'star.png'
+                'sprite' : {
+                    'src' : 'sky.jpg'
+                }
             }
         }
     }
@@ -172,7 +188,7 @@
         }
     });
 
-    Crafty.c("Ennemy", {
+    Crafty.c("Enemy", {
         init: function() {
             this.requires("Collision");
 
@@ -237,18 +253,18 @@
     Crafty.init(FOX.width, FOX.height);
 
     // Preload the needed assets
-    Crafty.load([FOX.sprites.fox.src, FOX.sprites.sky.src], function() {
+    Crafty.load([FOX.entities.player.sprite.src, FOX.entities.player.sprite.src], function() {
         // Splice the fox sprite
-        Crafty.sprite(FOX.sprites.fox.size, FOX.sprites.fox.src, {
+        Crafty.sprite(FOX.entities.player.sprite.size, FOX.entities.player.sprite.src, {
             fox: [0,0]
         });
-        Crafty.sprite(FOX.sprites.ennemy.size, FOX.sprites.ennemy.src, {
-            ennemy: [0,0]
+        Crafty.sprite(FOX.entities.enemy.sprite.size, FOX.entities.enemy.sprite.src, {
+            enemy: [0,0]
         });
-        Crafty.sprite(FOX.sprites.superEnnemy.size, FOX.sprites.superEnnemy.src, {
-            superEnnemy: [0,0]
+        Crafty.sprite(FOX.entities.superEnemy.sprite.size, FOX.entities.superEnemy.sprite.src, {
+            superEnemy: [0,0]
         });
-        Crafty.sprite(FOX.sprites.star.size, FOX.sprites.star.src, {
+        Crafty.sprite(FOX.entities.star.sprite.size, FOX.entities.star.sprite.src, {
             star: [0,0]
         });
 
@@ -262,9 +278,9 @@
     // -----------------------------------------------------------------
 
     function gameOver() {
-        clearInterval(FOX.spawn.star.next);
-        clearInterval(FOX.spawn.ennemy.next);
-        clearInterval(FOX.spawn.superEnnemy.next);
+        clearInterval(FOX.entities.star.spawn.next);
+        clearInterval(FOX.entities.enemy.spawn.next);
+        clearInterval(FOX.entities.superEnemy.spawn.next);
         Crafty.scene("gameover");
     }
 
@@ -273,12 +289,12 @@
     // -----------------------------------------------------------------
 
     Crafty.scene("start", function() {
-        Crafty.background("url("+FOX.sprites.sky.src+")");
+        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
         Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play</a>');
     });
 
     Crafty.scene("gameover", function() {
-        Crafty.background("url("+FOX.sprites.sky.src+")");
+        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
         Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play again?</a>');
         Crafty.e("2D, DOM, Text")
             .css("color", "red")
@@ -291,12 +307,12 @@
     });
 
     Crafty.scene("main", function() {
-        Crafty.background("url("+FOX.sprites.sky.src+")");
+        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
 
         FOX.player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health, Score")
             .attr({
                 x: 0,
-                y: Crafty.viewport.height - FOX.sprites.fox.size - FOX.sprites.floor.size,
+                y: Crafty.viewport.height - FOX.entities.player.sprite.size - FOX.entities.floor.sprite.size,
                 health : FOX.life
             })
             .animate("walk", 1, 0, 4)
@@ -322,26 +338,26 @@
         Crafty.e("2D, floor")
             .attr({
                 x: 0,
-                y: Crafty.viewport.height - FOX.sprites.floor.size,
+                y: Crafty.viewport.height - FOX.entities.floor.sprite.size,
                 w: Crafty.viewport.width,
-                h: FOX.sprites.floor.size
+                h: FOX.entities.floor.sprite.size
             })
         ;
 
         function spawn(type, components) {
-            var spawnData = FOX.spawn[type];
-            clearInterval(spawnData.next);
-            spawnData.next = setInterval(
+            var entity = FOX.entities[type];
+            clearInterval(entity.spawn.next);
+            entity.spawn.next = setInterval(
                 function() {
-                    Crafty.e("Moving, " + components).attr({y : spawnData.y, speed : spawnData.speed});
+                    Crafty.e("Moving, " + components).attr(entity.attr);
                     spawn(type, components);
                 },
-                Math.floor(Math.random() * (spawnData.max - spawnData.min + 1)) + spawnData.min
+                Math.floor(Math.random() * (entity.spawn.max - entity.spawn.min + 1)) + entity.spawn.min
             );
         }
-        spawn("ennemy", "Ennemy, ennemy");
+        spawn("enemy", "Enemy, enemy");
         spawn("star", "Star, star");
-        spawn("superEnnemy", "Ennemy, superEnnemy");
+        spawn("superEnemy", "Enemy, superEnemy");
     });
 
 })();
