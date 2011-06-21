@@ -8,12 +8,30 @@
         'width' : 572,
         'height' : 120,
         'player' : null,
-        'life' : 1,
-        'score' : 0,
+        'life' : 5,
+        'score' : 10,
         'spawn' : {
-            'min' : 400,
-            'max' : 2000,
-            'next' : null
+            'star' : {
+                'min' : 600,
+                'max' : 2000,
+                'y' : 20,
+                'speed' : 5,
+                'next' : null
+            },
+            'ennemy' : {
+                'min' : 400,
+                'max' : 2000,
+                'y' : 84,
+                'speed' : 5,
+                'next' : null
+            },
+            'superEnnemy' : {
+                'min' : 3000,
+                'max' : 10000,
+                'y' : 84,
+                'speed' : 8,
+                'next' : null
+            }
         },
         'sprites' : {
             'fox' : {
@@ -27,9 +45,17 @@
             'sky' : {
                 'src' : 'sky.jpg'
             },
-            'ball' : {
+            'ennemy' : {
                 'size' : 16,
                 'src' : 'ie.png'
+            },
+            'superEnnemy' : {
+                'size' : 16,
+                'src' : 'ball.png'
+            },
+            'star' : {
+                'size' : 16,
+                'src' : 'star.png'
             }
         }
     }
@@ -121,7 +147,6 @@
 
             this.attr({
                 x : Crafty.viewport.width,
-                y : Crafty.viewport.height - FOX.sprites.floor.size - FOX.sprites.ball.size,
                 speed : 5
             });
 
@@ -154,6 +179,20 @@
             this.collision()
                 .onHit("fox", function() {
                     FOX.player.hurt(1);
+                    FOX.player.losing(2);
+                    this.destroy();
+                })
+                ;
+        },
+    });
+
+    Crafty.c("Star", {
+        init: function() {
+            this.requires("Collision");
+
+            this.collision()
+                .onHit("fox", function() {
+                    FOX.player.winning(10);
                     this.destroy();
                 })
                 ;
@@ -162,13 +201,30 @@
 
     Crafty.c("Health", {
         init: function() {
-            this.health = 100;
+            this.health = FOX.life;
         },
 
         hurt: function(aouch) {
             this.health -= aouch;
             if (this.health <= 0) {
                 gameOver();
+            }
+        },
+    });
+
+    Crafty.c("Score", {
+        init: function() {
+            this.score = FOX.score;
+        },
+
+        winning: function(points) {
+            this.score += points;
+        },
+
+        losing: function(points) {
+            this.score -= points;
+            if (this.score <= 0) {
+                this.score = 0;
             }
         },
     });
@@ -186,12 +242,19 @@
         Crafty.sprite(FOX.sprites.fox.size, FOX.sprites.fox.src, {
             fox: [0,0]
         });
-        Crafty.sprite(FOX.sprites.ball.size, FOX.sprites.ball.src, {
-            ball: [0,0]
+        Crafty.sprite(FOX.sprites.ennemy.size, FOX.sprites.ennemy.src, {
+            ennemy: [0,0]
+        });
+        Crafty.sprite(FOX.sprites.superEnnemy.size, FOX.sprites.superEnnemy.src, {
+            superEnnemy: [0,0]
+        });
+        Crafty.sprite(FOX.sprites.star.size, FOX.sprites.star.src, {
+            star: [0,0]
         });
 
         // Start the main scene when loaded
-        Crafty.scene("start");
+        //~ Crafty.scene("start");
+        Crafty.scene("main");
     });
 
     // -----------------------------------------------------------------
@@ -199,7 +262,9 @@
     // -----------------------------------------------------------------
 
     function gameOver() {
-        clearInterval(FOX.spawn.next);
+        clearInterval(FOX.spawn.star.next);
+        clearInterval(FOX.spawn.ennemy.next);
+        clearInterval(FOX.spawn.superEnnemy.next);
         Crafty.scene("start");
     }
 
@@ -208,27 +273,15 @@
     // -----------------------------------------------------------------
 
     Crafty.scene("start", function() {
+        Crafty("2D").destroy();
         Crafty.background("url("+FOX.sprites.sky.src+")");
-
-        var link = Crafty.e("2D, DOM, Text").text('<a href="#" id="play">Play</a>');
-
-        var startGame = function(e) {
-            e.preventDefault();
-            Crafty.scene("main");
-        }
-
-        Crafty.addEvent(
-            this,
-            link._element,
-            "click",
-            startGame.bind(this)
-        );
+        Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play</a>');
     });
 
     Crafty.scene("main", function() {
         Crafty.background("url("+FOX.sprites.sky.src+")");
 
-        FOX.player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health")
+        FOX.player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health, Score")
             .attr({
                 x: 0,
                 y: Crafty.viewport.height - FOX.sprites.fox.size - FOX.sprites.floor.size,
@@ -239,6 +292,19 @@
             .gravity("floor")
         ;
 
+        lifeTxt = Crafty.e("2D, DOM, Text")
+            .text('<p id="life">Life: ' + FOX.life + '</p>')
+            .css("color", "red")
+            .bind("enterframe", function() {
+                this.text('<p id="life">Life: ' + FOX.player.health + '</p>');
+            })
+            ;
+        scoreTxt = Crafty.e("2D, DOM, Text")
+            .bind("enterframe", function() {
+                this.text('<p id="score">' + FOX.player.score + '</p>');
+            })
+            ;
+
         Crafty.e("2D, floor")
             .attr({
                 x: 0,
@@ -248,17 +314,20 @@
             })
         ;
 
-        function spawn() {
-            clearInterval(FOX.spawn.next);
-            FOX.spawn.next = setInterval(
+        function spawn(type, components) {
+            var spawnData = FOX.spawn[type];
+            clearInterval(spawnData.next);
+            spawnData.next = setInterval(
                 function() {
-                    Crafty.e("Moving, Ennemy, ball");
-                    spawn();
+                    Crafty.e("Moving, " + components).attr({y : spawnData.y, speed : spawnData.speed});
+                    spawn(type, components);
                 },
-                Math.floor(Math.random() * (FOX.spawn.max - FOX.spawn.min + 1)) + FOX.spawn.min
+                Math.floor(Math.random() * (spawnData.max - spawnData.min + 1)) + spawnData.min
             );
         }
-        spawn();
+        spawn("ennemy", "Ennemy, ennemy");
+        spawn("star", "Star, star");
+        spawn("superEnnemy", "Ennemy, superEnnemy");
     });
 
 })();
