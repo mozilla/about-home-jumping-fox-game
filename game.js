@@ -159,7 +159,7 @@
      */
     Crafty.c("Moving", {
         init: function() {
-            this.requires("2D, DOM");
+            this.requires("2D, Canvas");
 
             this.attr({
                 x : Crafty.viewport.width,
@@ -251,6 +251,7 @@
 
     // Init the game
     Crafty.init(FOX.width, FOX.height);
+    Crafty.canvas();
 
     // Preload the needed assets
     Crafty.load([FOX.entities.player.sprite.src, FOX.entities.player.sprite.src], function() {
@@ -269,8 +270,8 @@
         });
 
         // Start the main scene when loaded
-        //~ Crafty.scene("start");
-        Crafty.scene("main");
+        Crafty.scene("start");
+        //~ Crafty.scene("main");
     });
 
     // -----------------------------------------------------------------
@@ -290,7 +291,7 @@
 
     Crafty.scene("start", function() {
         Crafty.background("url("+FOX.entities.sky.sprite.src+")");
-        Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play</a>');
+        Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\'); return false;">Play</a>');
     });
 
     Crafty.scene("gameover", function() {
@@ -309,7 +310,7 @@
     Crafty.scene("main", function() {
         Crafty.background("url("+FOX.entities.sky.sprite.src+")");
 
-        FOX.player = Crafty.e("2D, DOM, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health, Score")
+        FOX.player = Crafty.e("2D, Canvas, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health, Score")
             .attr({
                 x: 0,
                 y: Crafty.viewport.height - FOX.entities.player.sprite.size - FOX.entities.floor.sprite.size,
