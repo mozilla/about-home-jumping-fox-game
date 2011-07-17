@@ -8,8 +8,9 @@
         'width' : 572,
         'height' : 120,
         'player' : null,
-        'life' : 5,
+        'life' : 1,
         'score' : 0,
+        'newHighScore' : false,
         'entities' : {
             'star' : {
                 'attr' : {
@@ -279,9 +280,21 @@
     // -----------------------------------------------------------------
 
     function gameOver() {
+        // Stop spawning
         clearInterval(FOX.entities.star.spawn.next);
         clearInterval(FOX.entities.enemy.spawn.next);
         clearInterval(FOX.entities.superEnemy.spawn.next);
+
+        // Save score if highest
+        FOX.newHighScore = false;
+        if (window.localStorage) {
+            if (FOX.player.score > window.localStorage.getItem("highscore")) {
+                window.localStorage.setItem("highscore", FOX.player.score);
+                FOX.newHighScore = true;
+            }
+        }
+
+        // Go to game over scene
         Crafty.scene("gameover");
     }
 
@@ -295,8 +308,16 @@
     });
 
     Crafty.scene("gameover", function() {
+        var highScoreText = "";
+        if (FOX.newHighScore) {
+            highScoreText = "NEW High Score";
+        }
+        else {
+            highScoreText = "High Score";
+        }
         Crafty.background("url("+FOX.entities.sky.sprite.src+")");
-        Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\');">Play again?</a>');
+        Crafty.e("2D, DOM, Text").text('<p><a href="#" id="play-again" onclick="Crafty.scene(\'main\'); return false;">Play again!</a></p>');
+        Crafty.e("2D, DOM, Text").text('<p id="highscore">'+ highScoreText +': <span class="score">'+ window.localStorage.getItem("highscore") +'</span></p>');
         Crafty.e("2D, DOM, Text")
             .css("color", "red")
             .text('<p id="life">Life: ' + FOX.player.health + '</p>')
@@ -304,7 +325,6 @@
         Crafty.e("2D, DOM, Text")
             .text('<p id="score">' + FOX.player.score + '</p>')
             ;
-
     });
 
     Crafty.scene("main", function() {
@@ -356,6 +376,8 @@
                 Math.floor(Math.random() * (entity.spawn.max - entity.spawn.min + 1)) + entity.spawn.min
             );
         }
+
+        // Start generating enemies and stars
         spawn("enemy", "Enemy, enemy");
         spawn("star", "Star, star");
         spawn("superEnemy", "Enemy, superEnemy");
