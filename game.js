@@ -60,7 +60,7 @@
             'player' : {
                 'sprite' : {
                     'size' : 50,
-                    'src' : 'foxsheet.png'
+                    'src' : 'sprite.png'
                 }
             },
             'floor' : {
