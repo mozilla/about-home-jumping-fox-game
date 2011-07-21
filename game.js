@@ -11,6 +11,10 @@
         'life' : 1,
         'score' : 0,
         'newHighScore' : false,
+        'sprites' : {
+            'src' : 'sprites.png',
+            'size' : 1
+        },
         'entities' : {
             'star' : {
                 'attr' : {
@@ -24,7 +28,7 @@
                 },
                 'sprite' : {
                     'size' : 16,
-                    'src' : 'star.png'
+                    'coords' : [0, 224, 16, 16]
                 }
             },
             'enemy' : {
@@ -39,7 +43,7 @@
                 },
                 'sprite' : {
                     'size' : 16,
-                    'src' : 'ie.png'
+                    'coords' : [32, 224, 16, 16]
                 }
             },
             'superEnemy' : {
@@ -54,28 +58,28 @@
                 },
                 'sprite' : {
                     'size' : 16,
-                    'src' : 'chrome.png'
+                    'coords' : [48, 224, 16, 16]
                 }
             },
             'player' : {
                 'sprite' : {
-                    'size' : 50,
-                    'src' : 'sprite.png'
+                    'size' : 64,
+                    'coords' : [0, 160, 64, 64]
                 }
             },
             'floor' : {
                 'sprite' : {
                     'size' : 20,
-                    'src' : 'floor.png'
+                    'coords' : [0,128]
                 }
             },
             'sky' : {
                 'sprite' : {
-                    'src' : 'sky.jpg'
+                    'coords' : [0,0]
                 }
             }
         }
-    }
+    };
 
     // -----------------------------------------------------------------
     // Components
@@ -88,16 +92,18 @@
         init: function() {
             // If the "animate" component is not added to this one, then add it
             this.requires("Animate");
+        },
 
+        animation: function(animName, coords, duration) {
             // Bind the "enterframe" event, called every time the frame is displayed
             this.bind("enterframe", function() {
                 // If the animation is not playing anymore, then reload it
-                if (!this.isPlaying("walk"))
-                {
-                    this.sprite(0, 0, 1, 1);        // Go back to the first sprite of the animation
-                    this.animate("walk", 10);       // Launch the animation, changing sprite every 20ms
+                if (!this.isPlaying(animName)) {
+                    this.sprite(coords[0], coords[1], coords[2], coords[3]);        // Go back to the first sprite of the animation
+                    this.animate(animName, duration);       // Launch the animation
                 }
             });
+            return this;
         }
     });
 
@@ -255,19 +261,14 @@
     Crafty.canvas();
 
     // Preload the needed assets
-    Crafty.load([FOX.entities.player.sprite.src, FOX.entities.player.sprite.src], function() {
+    Crafty.load([FOX.sprites.src], function() {
         // Splice the fox sprite
-        Crafty.sprite(FOX.entities.player.sprite.size, FOX.entities.player.sprite.src, {
-            fox: [0,0]
-        });
-        Crafty.sprite(FOX.entities.enemy.sprite.size, FOX.entities.enemy.sprite.src, {
-            enemy: [0,0]
-        });
-        Crafty.sprite(FOX.entities.superEnemy.sprite.size, FOX.entities.superEnemy.sprite.src, {
-            superEnemy: [0,0]
-        });
-        Crafty.sprite(FOX.entities.star.sprite.size, FOX.entities.star.sprite.src, {
-            star: [0,0]
+        Crafty.sprite(FOX.sprites.size, FOX.sprites.src, {
+            'floor' : FOX.entities.floor.sprite.coords,
+            'fox' : FOX.entities.player.sprite.coords,
+            'enemy' : FOX.entities.enemy.sprite.coords,
+            'superEnemy' : FOX.entities.superEnemy.sprite.coords,
+            'star' : FOX.entities.star.sprite.coords
         });
 
         // Start the main scene when loaded
@@ -303,7 +304,7 @@
     // -----------------------------------------------------------------
 
     Crafty.scene("start", function() {
-        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
+        Crafty.background("url(" + FOX.sprites.src + ")");
         Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\'); return false;">Play</a>');
     });
 
@@ -315,7 +316,7 @@
         else {
             highScoreText = "High Score";
         }
-        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
+        Crafty.background("url(" + FOX.sprites.src + ")");
         Crafty.e("2D, DOM, Text").text('<p><a href="#" id="play-again" onclick="Crafty.scene(\'main\'); return false;">Play again!</a></p>');
         Crafty.e("2D, DOM, Text").text('<p id="highscore">'+ highScoreText +': <span class="score">'+ window.localStorage.getItem("highscore") +'</span></p>');
         Crafty.e("2D, DOM, Text")
@@ -328,18 +329,20 @@
     });
 
     Crafty.scene("main", function() {
-        Crafty.background("url("+FOX.entities.sky.sprite.src+")");
+        Crafty.background("url(" + FOX.sprites.src + ")");
 
-        FOX.player = Crafty.e("2D, Canvas, fox, Animation, TwowayRunning, Gravity, Inside, Collision, Health, Score")
+        FOX.player = Crafty.e("2D, Canvas, Animate, TwowayRunning, Gravity, Inside, Collision, Health, Score, fox")
             .attr({
                 x: 0,
                 y: Crafty.viewport.height - FOX.entities.player.sprite.size - FOX.entities.floor.sprite.size,
                 health : FOX.life
             })
-            .animate("walk", 1, 0, 4)
+            .animate("walk", 1, 160, 256)
             .twoway(0, 7)
             .gravity("floor")
         ;
+
+        FOX.player.animate("walk", 10, -1);
 
         // Life text
         Crafty.e("2D, DOM, Text")
