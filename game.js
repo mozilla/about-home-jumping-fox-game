@@ -86,28 +86,6 @@
     // -----------------------------------------------------------------
 
     /**
-     * Eternal animation.
-     */
-    Crafty.c("Animation", {
-        init: function() {
-            // If the "animate" component is not added to this one, then add it
-            this.requires("Animate");
-        },
-
-        animation: function(animName, coords, duration) {
-            // Bind the "enterframe" event, called every time the frame is displayed
-            this.bind("enterframe", function() {
-                // If the animation is not playing anymore, then reload it
-                if (!this.isPlaying(animName)) {
-                    this.sprite(coords[0], coords[1], coords[2], coords[3]);        // Go back to the first sprite of the animation
-                    this.animate(animName, duration);       // Launch the animation
-                }
-            });
-            return this;
-        }
-    });
-
-    /**
      * Twoway component but the caracter goes faster left than right.
      * This is used to simulate the moving ground.
      */
@@ -334,10 +312,10 @@
         FOX.player = Crafty.e("2D, Canvas, Animate, TwowayRunning, Gravity, Inside, Collision, Health, Score, fox")
             .attr({
                 x: 0,
-                y: Crafty.viewport.height - FOX.entities.player.sprite.size - FOX.entities.floor.sprite.size,
+                y: Crafty.viewport.height - FOX.entities.floor.sprite.size - FOX.entities.player.sprite.size,
                 health : FOX.life
             })
-            .animate("walk", 1, 160, 256)
+            .animate("walk", [ [0, 160], [64, 160], [128, 160], [192, 160], [256, 160] ])
             .twoway(0, 7)
             .gravity("floor")
         ;
