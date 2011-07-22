@@ -94,14 +94,14 @@
         _up: false,
 
         init: function() {
-            this.requires("controls");
+            this.requires("Keyboard");
         },
 
         twoway: function(speed,jump) {
             if(speed) this._speed = speed;
             jump = jump || this._speed * 2;
 
-            this.bind("enterframe", function() {
+            this.bind("EnterFrame", function() {
                 if (this.disableControls) return;
                 if(this.isDown("RIGHT_ARROW") || this.isDown("D")) {
                     this.x += this._speed;
@@ -113,7 +113,7 @@
                     this.y -= jump;
                     this._falling = true;
                 }
-            }).bind("keydown", function() {
+            }).bind("KeyDown", function() {
                 if(this.isDown("UP_ARROW") || this.isDown("W")) this._up = true;
             });
 
@@ -126,7 +126,7 @@
      */
     Crafty.c("Inside", {
         init: function() {
-            this.bind("enterframe", function() {
+            this.bind("EnterFrame", function() {
                 if (this.x < 0) {
                     this.x = 0;
                 }
@@ -151,7 +151,7 @@
                 speed : 5
             });
 
-            this.bind("enterframe", function() {
+            this.bind("EnterFrame", function() {
                 this._moveLeft();
             });
         },
@@ -236,10 +236,9 @@
 
     // Init the game
     Crafty.init(FOX.width, FOX.height);
-    Crafty.canvas();
+    Crafty.canvas.init();
 
-    // Preload the needed assets
-    Crafty.load([FOX.sprites.src], function() {
+    function createSprites() {
         // Splice the fox sprite
         Crafty.sprite(FOX.sprites.size, FOX.sprites.src, {
             'floor' : FOX.entities.floor.sprite.coords,
@@ -252,7 +251,7 @@
         // Start the main scene when loaded
         Crafty.scene("start");
         //~ Crafty.scene("main");
-    });
+    }
 
     // -----------------------------------------------------------------
     // Functions
@@ -309,7 +308,7 @@
     Crafty.scene("main", function() {
         Crafty.background("url(" + FOX.sprites.src + ")");
 
-        FOX.player = Crafty.e("2D, Canvas, Animate, TwowayRunning, Gravity, Inside, Collision, Health, Score, fox")
+        FOX.player = Crafty.e("2D, Canvas, SpriteAnimation, TwowayRunning, Gravity, Inside, Collision, Health, Score, fox")
             .attr({
                 x: 0,
                 y: Crafty.viewport.height - FOX.entities.floor.sprite.size - FOX.entities.player.sprite.size,
@@ -325,13 +324,13 @@
         // Life text
         Crafty.e("2D, DOM, Text")
             .css("color", "red")
-            .bind("enterframe", function() {
+            .bind("EnterFrame", function() {
                 this.text('<p id="life">Life: ' + FOX.player.health + '</p>');
             })
             ;
         // Score text
         Crafty.e("2D, DOM, Text")
-            .bind("enterframe", function() {
+            .bind("EnterFrame", function() {
                 this.text('<p id="score">' + FOX.player.score + '</p>');
             })
             ;
@@ -363,5 +362,15 @@
         spawn("star", "Star, star");
         spawn("superEnemy", "Enemy, superEnemy");
     });
+
+    // Loading the needed assets and creating the sprites
+    if (!!Crafty.assets[FOX.sprites.src]) {
+        Crafty.load([FOX.sprites.src], function() {
+            createSprites();
+        });
+    }
+    else {
+        createSprites();
+    }
 
 })();
