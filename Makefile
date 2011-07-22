@@ -19,22 +19,24 @@ folders :
 	[ -d $(BIN) ] || mkdir $(BIN)
 	[ -d $(TMP) ] || mkdir $(TMP)
 
-$(PROG) : $(INDEXIN) $(IMAGEJSOUT) $(JSOUT)
+$(PROG) : $(INDEXIN) $(JSOUT)
 	./scripts/replace_script_tags.py $(INDEXIN) $(JSOUT) > $(PROG)
+
+# minify and concatenate js files
+$(JSOUT) : $(CRAFTYSRC) $(IMAGEJSOUT) $(GAMESRC)
+	./scripts/compile.py $(CRAFTYSRC) > $(JSOUT)
+	cat $(IMAGEJSOUT) >> $(JSOUT)
+	./scripts/compile.py $(GAMESRC) >> $(JSOUT)
 
 # encode image to base64 and include it in a js file
 $(IMAGEJSOUT) : $(SPRITE)
 	base64 $(SPRITE) > $(IMGTMP)
-	sed '$$s#\s##g' $(IMGTMP) > $(IMGOUT)
-	sed 's#$$#\\#g' $(IMGOUT) > $(IMGTMP)
+	sed 's#$$#\\#g' $(IMGTMP) > $(IMGOUT)
+	sed '$$s#\\$$##g' $(IMGOUT) > $(IMGTMP)
 	echo "var img = new Image();" > $(IMAGEJSOUT)
 	echo "img.src = \"data:image/png;base64,`cat $(IMGTMP)`\";" >> $(IMAGEJSOUT)
 	echo "img.alt = '';" >> $(IMAGEJSOUT)
 	echo "Crafty.assets['$(SPRITE)'] = img;" >> $(IMAGEJSOUT)
-
-# minify and concatenate js files
-$(JSOUT) : $(CRAFTYSRC) $(IMAGEJSOUT) $(GAMESRC)
-	./scripts/compile.py $^ > $(JSOUT)
 
 clean :
 	rm -rf $(BIN)*
