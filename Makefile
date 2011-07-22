@@ -5,11 +5,13 @@ TMP = tmp/
 # files
 PROG = $(BIN)index.html
 INDEXIN = index.html
-IMAGEOUT = $(TMP)images.js
+IMAGEJSOUT = $(TMP)images.js
 SPRITE = sprites.png
 CRAFTYSRC = crafty.js
 GAMESRC = game.js
 JSOUT = $(TMP)compiled.js
+IMGTMP = $(TMP)encoded.txt
+IMGOUT = $(TMP)encoded_.txt
 
 all : folders $(PROG)
 
@@ -17,18 +19,21 @@ folders :
 	[ -d $(BIN) ] || mkdir $(BIN)
 	[ -d $(TMP) ] || mkdir $(TMP)
 
-$(PROG) : $(INDEXIN) $(IMAGEOUT) $(JSOUT)
+$(PROG) : $(INDEXIN) $(IMAGEJSOUT) $(JSOUT)
 	./scripts/replace_script_tags.py $(INDEXIN) $(JSOUT) > $(PROG)
 
 # encode image to base64 and include it in a js file
-$(IMAGEOUT) : $(SPRITE)
-	echo "var img = new Image();" > $(IMAGEOUT)
-	echo "img.src = '`base64 $(SPRITE) | tr -d '\n'`';" >> $(IMAGEOUT)
-	echo "img.alt = '';" >> $(IMAGEOUT)
-	echo "Crafty.assets['$(SPRITE)'] = img;" >> $(IMAGEOUT)
+$(IMAGEJSOUT) : $(SPRITE)
+	base64 $(SPRITE) > $(IMGTMP)
+	sed '$$s#\s##g' $(IMGTMP) > $(IMGOUT)
+	sed 's#$$#\\#g' $(IMGOUT) > $(IMGTMP)
+	echo "var img = new Image();" > $(IMAGEJSOUT)
+	echo "img.src = \"data:image/png;base64,`cat $(IMGTMP)`\";" >> $(IMAGEJSOUT)
+	echo "img.alt = '';" >> $(IMAGEJSOUT)
+	echo "Crafty.assets['$(SPRITE)'] = img;" >> $(IMAGEJSOUT)
 
 # minify and concatenate js files
-$(JSOUT) : $(CRAFTYSRC) $(IMAGEOUT) $(GAMESRC)
+$(JSOUT) : $(CRAFTYSRC) $(IMAGEJSOUT) $(GAMESRC)
 	./scripts/compile.py $^ > $(JSOUT)
 
 clean :
