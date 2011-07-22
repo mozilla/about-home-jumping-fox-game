@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import httplib, urllib, sys
+import httplib, urllib, re, sys
 
 file_number = len(sys.argv)
 data = ''
@@ -24,7 +24,11 @@ for i in xrange(1, file_number):
     # Always use the following value for the Content-type header.
     conn.request('POST', '/compile', params, headers)
     response = conn.getresponse()
-    data = " ".join((data, response.read()))
+    res = response.read()
+    resNoSpace = re.sub(r'[\s]*', '', res)
+    if not resNoSpace:
+        res = content
+    data = " ".join((data, res))
 
 print data
 conn.close
