@@ -75,7 +75,7 @@
             },
             'sky' : {
                 'sprite' : {
-                    'coords' : [0,0]
+                    'coords' : [0, 0, 600, 120]
                 }
             }
         }
@@ -241,6 +241,7 @@
     function createSprites() {
         // Splice the fox sprite
         Crafty.sprite(FOX.sprites.size, FOX.sprites.src, {
+            'sky' : FOX.entities.sky.sprite.coords,
             'floor' : FOX.entities.floor.sprite.coords,
             'fox' : FOX.entities.player.sprite.coords,
             'enemy' : FOX.entities.enemy.sprite.coords,
@@ -281,7 +282,9 @@
     // -----------------------------------------------------------------
 
     Crafty.scene("start", function() {
-        Crafty.background("url(" + FOX.sprites.src + ")");
+        Crafty.e("2D, Canvas, sky")
+            .attr({x: 0, y: 0});
+
         Crafty.e("2D, DOM, Text").text('<a href="#" id="play" onclick="Crafty.scene(\'main\'); return false;">Play</a>');
     });
 
@@ -293,7 +296,9 @@
         else {
             highScoreText = "High Score";
         }
-        Crafty.background("url(" + FOX.sprites.src + ")");
+        Crafty.e("2D, Canvas, sky")
+            .attr({x: 0, y: 0});
+
         Crafty.e("2D, DOM, Text").text('<p><a href="#" id="play-again" onclick="Crafty.scene(\'main\'); return false;">Play again!</a></p>');
         Crafty.e("2D, DOM, Text").text('<p id="highscore">'+ highScoreText +': <span class="score">'+ window.localStorage.getItem("highscore") +'</span></p>');
         Crafty.e("2D, DOM, Text")
@@ -306,7 +311,8 @@
     });
 
     Crafty.scene("main", function() {
-        Crafty.background("url(" + FOX.sprites.src + ")");
+        Crafty.e("2D, Canvas, sky")
+            .attr({x: 0, y: 0});
 
         FOX.player = Crafty.e("2D, Canvas, SpriteAnimation, TwowayRunning, Gravity, Inside, Collision, Health, Score, fox")
             .attr({
@@ -363,14 +369,6 @@
         spawn("superEnemy", "Enemy, superEnemy");
     });
 
-    // Loading the needed assets and creating the sprites
-    if (!!Crafty.assets[FOX.sprites.src]) {
-        Crafty.load([FOX.sprites.src], function() {
-            createSprites();
-        });
-    }
-    else {
-        createSprites();
-    }
-
+    // Start loading the game
+    createSprites();
 })();

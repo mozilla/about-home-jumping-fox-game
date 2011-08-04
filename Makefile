@@ -31,10 +31,9 @@ $(JSOUT) : $(CRAFTYSRC) $(IMAGEJSOUT) $(GAMESRC)
 # encode image to base64 and include it in a js file
 $(IMAGEJSOUT) : $(SPRITE)
 	base64 $(SPRITE) > $(IMGTMP)
-	sed 's#$$#\\#g' $(IMGTMP) > $(IMGOUT)
-	sed '$$s#\\$$##g' $(IMGOUT) > $(IMGTMP)
+	awk '$$1=$$1' ORS='' $(IMGTMP) > $(IMGOUT)
 	echo "var img = new Image();" > $(IMAGEJSOUT)
-	echo "img.src = \"data:image/png;base64,`cat $(IMGTMP)`\";" >> $(IMAGEJSOUT)
+	echo "img.src = \"data:image/png;base64,`cat $(IMGOUT)`\";" >> $(IMAGEJSOUT)
 	echo "img.alt = '';" >> $(IMAGEJSOUT)
 	echo "Crafty.assets['$(SPRITE)'] = img;" >> $(IMAGEJSOUT)
 
