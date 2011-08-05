@@ -8,7 +8,7 @@ Snippet for the Firefox about:home page that let you play with a fox. Jump over 
 * Open a terminal.
 * `git clone git://github.com/mozilla/about-home-jumping-fox-game.git`
 * `cd about-home-jumping-fox-game`
-* Run `make` in a terminal
+* `make`
 * Paste the contents of `./bin/index.html` into a new snippet via the home-snippets-server admin interface.
     * If you started the home-snippets-server with `python manage.py runserver` the admin interface is located at <http://localhost:8000/admin/>.
 * In the `about-home-jumping-fox-game` directory, run the command `python -m SimpleHTTPServer 3033`
