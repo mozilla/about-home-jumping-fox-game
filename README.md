@@ -1,3 +1,5 @@
+# MOVED https://github.com/mozilla/snippets/tree/master/jumping-fox-game
+
 # about:home Jumping Fox Game Snippet
 
 Snippet for the Firefox about:home page that let you play with a fox. Jump over enemies, catch stars and make a lot of points!
