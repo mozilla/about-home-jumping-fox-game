@@ -1,4 +1,4 @@
-# MOVED https://github.com/mozilla/snippets/tree/master/jumping-fox-game
+# MOVED https://github.com/mozmar/snippets/tree/master/legacy/jumping-fox-game
 
 # about:home Jumping Fox Game Snippet
 
